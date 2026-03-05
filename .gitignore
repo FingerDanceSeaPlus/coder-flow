@@ -1,0 +1,6 @@
+backend/.env
+backend/src/models/__pycache__
+backend/src/agents/lead_agent/__pycache__
+backend/tests/agents/lead_agent/__pycache__
+backend/src/agents/middlewares/__pycache__
+backend/src/agents/__pycache__

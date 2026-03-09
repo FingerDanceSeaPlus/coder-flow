@@ -9,7 +9,7 @@ def create_agent_model():
     """
     return ChatOpenAI(
         model_name="deepseek-chat",
-        base_url="https://api.deepseek.cn/v1",
+        base_url="https://api.deepseek.com",
         api_key=deepseek_api_key,
         temperature=0.7,
     )

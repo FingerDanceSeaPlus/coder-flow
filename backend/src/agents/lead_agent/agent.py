@@ -5,6 +5,7 @@ from langchain.agents import create_agent
 from src.agents.thread_state import ThreadState
 from src.agents.middlewares.middleware_manager import MiddlewareManager
 from src.tools import get_available_tools
+from src.agents.lead_agent.prompt import apply_prompt_template
 logger = logging.getLogger(__name__)#创建一个与当前模块同名的日志记录器实例 ，用于在该模块中记录各种级别的日志信息。
 
 
@@ -21,6 +22,6 @@ def make_lead_agent(config: RunnableConfig):
         model=create_agent_model(),
         tools=get_available_tools(),
         middleware=middlewares,
-        system_prompt="你是一个领导型agent，你需要帮助组织你的工作。",
+        system_prompt=apply_prompt_template(subagent_enabled=False,max_concurrent_subagents=3,agent_name="Lead Agent"),
         state_schema=ThreadState,
     )

@@ -165,8 +165,7 @@ def test_clarification(agent):
         last_message_content = get_message_content(last_message)
         print("Agent:", last_message_content)
     print()
-
-
+#TODO: 完善交互模式
 def interactive_mode(agent):
     """Interactive mode for testing"""
     print("=== Interactive Mode ===")
@@ -194,12 +193,15 @@ def interactive_mode(agent):
                 print("Current todos:", state.get("todos", []))
                 continue
             
-            # Invoke agent
+            # 累积消息历史
+            state["messages"].append({
+                "role": "user",
+                "content": user_input
+            })
+            
+            # 传递完整的消息历史
             result = agent.invoke({
-                "messages": [{
-                    "role": "user",
-                    "content": user_input
-                }],
+                "messages": state["messages"],
                 **state
             })
             
@@ -211,7 +213,32 @@ def interactive_mode(agent):
             if messages:
                 last_message = messages[-1]
                 last_message_content = get_message_content(last_message)
-                print("Agent:", last_message_content)
+                # 检查是否是澄清消息
+                if hasattr(last_message, 'name') and last_message.name == "ask_clarification":
+                    # 这是一个澄清请求，显示问题
+                    print("Agent (Clarification):", last_message_content)
+                    # 等待用户回答
+                    clarification_response = input("Your answer: ")
+                    # 将回答添加到消息历史
+                    state["messages"].append({
+                        "role": "user",
+                        "content": clarification_response
+                    })
+                    # 继续执行agent
+                    result = agent.invoke({
+                        "messages": state["messages"],
+                        **state
+                    })
+                    # 更新状态
+                    state = result
+                    # 显示agent的回复
+                    if result.get("messages"):
+                        final_message = result["messages"][-1]
+                        final_content = get_message_content(final_message)
+                        print("Agent:", final_content)
+                else:
+                    # 普通回复
+                    print("Agent:", last_message_content)
             
             # Show updated todos if any
             if result.get("todos"):
@@ -221,6 +248,7 @@ def interactive_mode(agent):
             
         except KeyboardInterrupt:
             break
+
 
 
 def main():

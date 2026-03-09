@@ -1,6 +1,6 @@
 from langchain_core.runnables import RunnableConfig
 from langchain.agents.middleware import AgentMiddleware, SummarizationMiddleware, TodoListMiddleware
-
+from src.agents.middlewares.clarification_middleware import ClarificationMiddleware
 class MiddlewareManager:
     """
     中间件管理器，用于管理和应用中间件。
@@ -15,6 +15,8 @@ class MiddlewareManager:
         """
         self.middlewares.append(self._create_summarization_middleware())
         self.middlewares.append(self._create_todo_list_middleware())
+        # ClarificationMiddleware should always be last
+        self.middlewares.append(ClarificationMiddleware())
         return self.middlewares
 
     def _create_summarization_middleware(self)->SummarizationMiddleware:

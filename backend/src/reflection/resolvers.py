@@ -29,7 +29,7 @@ def resolve_variable[T](
     variable_path: str,
     expected_type: type[T] | tuple[type, ...] | None = None,
 ) -> T:
-    """Resolve a variable from a path.
+    """Resolve a variable from a path.通用的变量解析器，用于从字符串路径动态导入模块并获取其中的变量。
 
     Args:
         variable_path: The path to the variable (e.g. "parent_package_name.sub_package_name.module_name:variable_name").
@@ -44,7 +44,7 @@ def resolve_variable[T](
         ValueError: If the resolved variable doesn't pass the validation checks.
     """
     try:
-        module_path, variable_name = variable_path.rsplit(":", 1)
+        module_path, variable_name = variable_path.rsplit(":", 1)# 从路径中分离模块路径和变量名
     except ValueError as err:
         raise ImportError(f"{variable_path} doesn't look like a variable path. Example: parent_package_name.sub_package_name.module_name:variable_name") from err
 

@@ -17,6 +17,7 @@ SUBAGENT_TOOLS = [
 def get_available_tools(
     groups: list[str] | None = None,
     include_mcp: bool = True,
+    model_name: str | None = None,#TODO: 有些参数尚未使用
     subagent_enabled: bool = True,
 )->list[BaseTool]:
     """

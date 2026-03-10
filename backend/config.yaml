@@ -28,7 +28,7 @@ models:
     display_name: DeepSeek V3 (Thinking)
     use: src.models.patched_deepseek:PatchedChatDeepSeek
     model: deepseek-reasoner
-    api_key: $DEEPSEEK_API_KEY
+    api_key: sk-6477944dbc0f47fe89050f95b280b70f # 服了，先 hard code 了
     max_tokens: 16384
     supports_thinking: true
     supports_vision: false  # DeepSeek V3 does not support vision

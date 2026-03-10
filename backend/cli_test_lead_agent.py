@@ -218,7 +218,7 @@ def interactive_mode(agent):
                     # 这是一个澄清请求，显示问题
                     print("Agent (Clarification):", last_message_content)
                     # 等待用户回答
-                    clarification_response = input("Your answer: ")
+                    clarification_response = input("Answer: ")
                     # 将回答添加到消息历史
                     state["messages"].append({
                         "role": "user",

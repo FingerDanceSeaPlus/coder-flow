@@ -14,3 +14,6 @@ backend/src/tools/__pycache__/__init__.cpython-312.pyc
 backend/src/tools/__pycache__/tools.cpython-312.pyc
 backend/src/tools/builtiins/__pycache__/__init__.cpython-312.pyc
 backend/src/tools/builtiins/__pycache__/ask_clarification_tool.cpython-312.pyc
+backend/config.yaml
+backend/src/__pycache__/client.cpython-312.pyc
+backend/src/config/__pycache__/tracing_config.cpython-312.pyc

@@ -46,6 +46,20 @@ class AppConfig(BaseModel):
             config_data["tool_groups"] = []
         reseult=cls.model_validate(config_data) 
         return reseult
+    
+    def get_model_config(self, name: str) -> ModelConfig | None:
+        """
+        获取指定名称的模型配置。
+
+        参数：
+            name (str): 模型名称。
+        返回：
+            config (ModelConfig | None): 模型配置，如果不存在则返回 None。
+        """
+        for model in self.models:
+            if model.name == name:
+                return model
+        return None
 
 
 def get_app_config() -> AppConfig:

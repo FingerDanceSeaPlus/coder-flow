@@ -315,7 +315,7 @@ class SubagentExecutor:
         def run_task():
             with _background_tasks_lock:
                 _background_tasks[task_id].status = SubagentStatus.RUNNING
-                _background_tasks[task_id].started_at = datetime.now()
+                _background_tasks[task_id].start_time = datetime.now()
                 result_holder = _background_tasks[task_id]
             
             try:

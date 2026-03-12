@@ -12,7 +12,7 @@ BUILTIN_TOOLS = [
 ]
 # 子代理工具
 SUBAGENT_TOOLS = [
-    #task_tool,
+    task_tool,
 ]
 def get_available_tools(
     groups: list[str] | None = None,

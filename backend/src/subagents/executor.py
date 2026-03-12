@@ -139,14 +139,14 @@ class SubagentExecutor:
         # TODO： 添加沙盒相关的中间件，目前沙盒尚未实现
         #from src.agents.middlewares.thread_data_middleware import ThreadDataMiddleware
         #from src.sandbox.middleware import SandboxMiddleware
-        mideedwares = [
+        middlewares = [
             #ThreadDataMiddleware(self.thread_data),
             #SandboxMiddleware(self.sandbox_state),
         ]
         return create_agent(
             model=model,
             tools=self.tools,
-            middlewares=mideedwares,
+            middlewares=middlewares,
             system_prompt=self.config.system_prompt,
             state_schema=ThreadState,
         )
@@ -326,14 +326,14 @@ class SubagentExecutor:
                             _background_tasks[task_id].status = exec_result.status
                             _background_tasks[task_id].result = exec_result.result
                             _background_tasks[task_id].error = exec_result.error
-                            _background_tasks[task_id].completed_at = datetime.now()
+                            _background_tasks[task_id].end_time = datetime.now()
                             _background_tasks[task_id].ai_messages = exec_result.ai_messages
                 except FuturesTimeoutError:
                     logger.error(f"[trace={self.trace_id}] Subagent {self.config.name} execution timed out after {self.config.timeout_seconds}s")
                     with _background_tasks_lock:
                         _background_tasks[task_id].status = SubagentStatus.TIMED_OUT
                         _background_tasks[task_id].error = f"Execution timed out after {self.config.timeout_seconds} seconds"
-                        _background_tasks[task_id].completed_at = datetime.now()
+                        _background_tasks[task_id].end_time = datetime.now()
                     # Cancel the future (best effort - may not stop the actual execution)
                     execution_future.cancel()
             except Exception as e:
@@ -341,7 +341,7 @@ class SubagentExecutor:
                 with _background_tasks_lock:
                     _background_tasks[task_id].status = SubagentStatus.FAILED
                     _background_tasks[task_id].error = str(e)
-                    _background_tasks[task_id].completed_at = datetime.now()
+                    _background_tasks[task_id].end_time = datetime.now()
 
         _scheduler_pool.submit(run_task)
         return task_id

@@ -1,12 +1,14 @@
 from langchain_core.runnables import RunnableConfig
 from langchain.agents.middleware import AgentMiddleware, SummarizationMiddleware, TodoListMiddleware
 from src.agents.middlewares.clarification_middleware import ClarificationMiddleware
+from src.agents.middlewares.subagent_limit_middleware import SubagentLimitMiddleware
+
 class MiddlewareManager:
     """
     中间件管理器，用于管理和应用中间件。
     """
     def __init__(self,config: RunnableConfig):
-        config = config
+        self.config = config
         self.middlewares = []
 
     def build_middlewares(self)->list[AgentMiddleware]:
@@ -15,6 +17,12 @@ class MiddlewareManager:
         """
         self.middlewares.append(self._create_summarization_middleware())
         self.middlewares.append(self._create_todo_list_middleware())
+        
+        subagent_enabled = self.config.get("configurable", {}).get("subagent_enabled", False)
+        if subagent_enabled:
+            max_concurrent_subagents = self.config.get("configurable", {}).get("max_concurrent_subagents", 3)
+            self.middlewares.append(SubagentLimitMiddleware(max_concurrent=max_concurrent_subagents))
+
         # ClarificationMiddleware should always be last
         self.middlewares.append(ClarificationMiddleware())
         return self.middlewares

@@ -1,6 +1,13 @@
 from pydantic import BaseModel, Field
+class SubagentOverrideConfig(BaseModel):
+    """Per-agent configuration overrides."""
 
-from backend.src import subagents
+    timeout_seconds: int | None = Field(
+        default=None,
+        ge=1,
+        description="Timeout in seconds for this subagent (None = use global default)",
+    )
+
 class SubagentsAppConfig(BaseModel):
     """Configuration for subagents application.
     子代理应用配置。

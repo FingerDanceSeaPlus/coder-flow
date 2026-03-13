@@ -15,7 +15,7 @@ from langchain_core.runnables import RunnableConfig
 from langchain_core.messages import AIMessage, HumanMessage
 import threading
 from concurrent.futures import TimeoutError as FuturesTimeoutError
-
+from langchain.agents import create_agent
 class SubagentStatus(Enum):
     """Status of a subagent execution."""
 
@@ -55,7 +55,7 @@ _executor_pool = ThreadPoolExecutor(max_workers=10,thread_name_prefix="subagent-
 
 
 def _filter_tools(
-    all_tools: list[str], 
+    all_tools: list[BaseTool], 
     allowed_tools: list[str] | None,
     disallowed_tools: list[str] | None
 )->list[BaseTool]:
@@ -72,10 +72,10 @@ def _filter_tools(
     filtered=all_tools
     if allowed_tools is not None:
         all_allowed = set(allowed_tools)
-        filtered = [tool for tool in filtered if tool in all_allowed]
+        filtered = [tool for tool in filtered if tool.name in all_allowed]
     if disallowed_tools is not None:
         all_disallowed = set(disallowed_tools)
-        filtered = [tool for tool in filtered if tool not in all_disallowed]
+        filtered = [tool for tool in filtered if tool.name not in all_disallowed]
     return filtered
 
 
@@ -146,7 +146,7 @@ class SubagentExecutor:
         return create_agent(
             model=model,
             tools=self.tools,
-            middlewares=middlewares,
+            middleware=middlewares,
             system_prompt=self.config.system_prompt,
             state_schema=ThreadState,
         )

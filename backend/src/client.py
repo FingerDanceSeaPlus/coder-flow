@@ -103,7 +103,7 @@ class DeerFlowClient:
         *,
         model_name: str | None = None,
         thinking_enabled: bool = True,
-        subagent_enabled: bool = False,
+        subagent_enabled: bool = True,
         plan_mode: bool = False,
     ):
         """Initialize the client.
@@ -192,13 +192,15 @@ class DeerFlowClient:
 
         thinking_enabled = cfg.get("thinking_enabled", True)
         model_name = cfg.get("model_name")
-        subagent_enabled = cfg.get("subagent_enabled", False)
+        subagent_enabled = cfg.get("subagent_enabled", True)
+        print(subagent_enabled)
         max_concurrent_subagents = cfg.get("max_concurrent_subagents", 3)
+        middleware_manager = MiddlewareManager(config=config)
 
         kwargs: dict[str, Any] = {
             "model": create_chat_model(name=model_name, thinking_enabled=thinking_enabled),
             "tools": self._get_tools(model_name=model_name, subagent_enabled=subagent_enabled),
-            "middleware": MiddlewareManager(config=config).build_middlewares(),
+            "middleware": middleware_manager.build_middlewares(),
             "system_prompt": apply_prompt_template(
                 subagent_enabled=subagent_enabled,
                 max_concurrent_subagents=max_concurrent_subagents,

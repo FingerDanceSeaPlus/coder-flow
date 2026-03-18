@@ -15,6 +15,11 @@ class MiddlewareManager:
         """
         构建并返回中间件列表。
         """
+        self.middlewares=_build_runtime_middlewares(
+            include_uploads=True,
+            include_dangling_tool_call_patch=True,
+            lazy_init=True,
+        )
         self.middlewares.append(self._create_summarization_middleware())
         self.middlewares.append(self._create_todo_list_middleware())
         
@@ -37,6 +42,7 @@ class MiddlewareManager:
                 ("messages", 20),
             ]
         keep=("messages", 20)
+        self.config
         kwargs = {
             "model": model,
             "trigger": trigger,
@@ -149,3 +155,34 @@ Being proactive with task management demonstrates thoroughness and ensures all r
 **Remember**: If you only need a few tool calls to complete a task and it's clear what to do, it's better to just do the task directly and NOT use this tool at all.
 """
         return TodoListMiddleware(system_prompt=system_prompt, tool_description=tool_description)
+
+
+def _build_runtime_middlewares(
+    *,
+    include_uploads: bool,
+    include_dangling_tool_call_patch: bool,
+    lazy_init: bool = True,
+) -> list[AgentMiddleware]:
+    """Build shared base middlewares for agent execution."""
+    from src.agents.middlewares.thread_data_middleware import ThreadDataMiddleware
+    from src.sandbox.middleware import SandboxMiddleware
+    from src.agents.middlewares.tool_error_handling_middleware import ToolErrorHandlingMiddleware
+
+    middlewares: list[AgentMiddleware] = [
+        ThreadDataMiddleware(lazy_init=lazy_init),
+        SandboxMiddleware(lazy_init=lazy_init),
+    ]
+    """
+    TODO: 暂时先忽略上传文件之类的中间件
+    if include_uploads:
+        from deerflow.agents.middlewares.uploads_middleware import UploadsMiddleware
+
+        middlewares.insert(1, UploadsMiddleware())
+
+    if include_dangling_tool_call_patch:
+        from deerflow.agents.middlewares.dangling_tool_call_middleware import DanglingToolCallMiddleware
+
+        middlewares.append(DanglingToolCallMiddleware())
+    """
+    middlewares.append(ToolErrorHandlingMiddleware())
+    return middlewares

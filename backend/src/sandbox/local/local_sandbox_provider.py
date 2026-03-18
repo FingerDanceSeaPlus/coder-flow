@@ -42,7 +42,7 @@ class LocalSandboxProvider(SandboxProvider):
         global _singleton
         if _singleton is None:
             _singleton = LocalSandbox("local", path_mappings=self._path_mappings)
-        return _singleton.id
+        return _singleton._id
 
     def get(self, sandbox_id: str) -> Sandbox | None:
         if sandbox_id == "local":

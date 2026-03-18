@@ -165,6 +165,17 @@ class LocalSandbox(Sandbox):
         /bin/zsh → /bin/bash → /bin/sh → first `sh` found on PATH.
         Raises a RuntimeError if no suitable shell is found.
         """
+        import os
+    
+        # 优先查找 Git Bash
+        git_bash_paths = [
+            r"C:\Program Files\Git\bin\bash.exe",
+        ]
+        
+        for path in git_bash_paths:
+            if os.path.exists(path):
+                # 返回 Windows 风格的路径
+                return path
         for shell in ("/bin/zsh", "/bin/bash", "/bin/sh"):
             if os.path.isfile(shell) and os.access(shell, os.X_OK):
                 return shell
@@ -177,10 +188,10 @@ class LocalSandbox(Sandbox):
             # Resolve container paths in command before execution
             resolved_command = self._resolve_paths_in_command(command)
 
+            shell_path = self._get_shell()
+
             result = subprocess.run(
-                resolved_command,
-                executable=self._get_shell(),
-                shell=True,
+                [shell_path, "-c", resolved_command],
                 capture_output=True,
                 text=True,
                 timeout=600,

@@ -6,21 +6,21 @@ load_dotenv()
 from pathlib import Path
 import yaml
 from pydantic import BaseModel, Field, ConfigDict
-
+from src.config.sandbox_config import SandboxConfig
 
 class AppConfig(BaseModel):
     """Config for the DeerFlow application"""
 
     models: list[ModelConfig] = Field(default_factory=list, description="Available models")
-    # TODO: 不太懂沙盒，暂时跳过
-    #sandbox: SandboxConfig = Field(description="Sandbox configuration")
+    sandbox: SandboxConfig = Field(description="Sandbox configuration")
     tools: list[ToolConfig] = Field(default_factory=list, description="Available tools")
     tool_groups: list[ToolGroupConfig] = Field(default_factory=list, description="Available tool groups")
     # TODO: 不太懂技能，暂时跳过
     #skills: SkillsConfig = Field(default_factory=SkillsConfig, description="Skills configuration")
     #extensions: ExtensionsConfig = Field(default_factory=ExtensionsConfig, description="Extensions configuration (MCP servers and skills state)")
     model_config = ConfigDict(extra="allow", frozen=False)
-
+    
+    @classmethod
     def from_file(cls, config_path: str|None=None)->Self:
         """
         从文件加载应用配置。
@@ -35,6 +35,8 @@ class AppConfig(BaseModel):
             raise FileNotFoundError(f"Config file not found: {config_path}")
         with open(path,  encoding="utf-8") as f:
             config_data=yaml.safe_load(f)
+
+        #TODO: 实现虚拟环境变量的读取
         # 处理 None 值，确保所有列表字段都有默认值
         if config_data is None:
             config_data = {}
@@ -70,5 +72,5 @@ def get_app_config() -> AppConfig:
         config (AppConfig): 应用配置。
     """
     #TODO: 配置文件路径暂时使用硬编码
-    _app_config = AppConfig().from_file("config.yaml")
+    _app_config = AppConfig.from_file("config.yaml")
     return _app_config

@@ -9,7 +9,7 @@ class ThreadDataState(TypedDict):
     uploads_path: NotRequired[str | None]
     outputs_path: NotRequired[str | None]
 class ThreadState(AgentState):
-    #sandbox: NotRequired[SandboxState | None]沙盒状态，不懂先注释掉
+    sandbox: NotRequired[SandboxState | None]
     thread_data: NotRequired[ThreadDataState | None]#存储线程相关的路径信息
     title: NotRequired[str | None]#线程标题，为对话提供有意义的话题，便于用户识别
     #artifacts: Annotated[list[str], merge_artifacts]存储生成的工件路径列表，不懂

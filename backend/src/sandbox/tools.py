@@ -204,7 +204,7 @@ def replace_virtual_paths_in_command(command: str, thread_data: ThreadDataState 
 
     def replace_match(match: re.Match) -> str:
         full_path = match.group(0)
-        return replace_virtual_path(full_path, thread_data)
+        return replace_virtual_path(full_path, thread_data)#把找到的虚拟路径，交给 replace_virtual_path 换成真实路径
 
     return pattern.sub(replace_match, command)
 
@@ -369,10 +369,10 @@ def bash_tool(runtime: ToolRuntime[ContextT, ThreadState], description: str, com
     """
     try:
         sandbox = ensure_sandbox_initialized(runtime)
-        ensure_thread_directories_exist(runtime)
+        ensure_thread_directories_exist(runtime) # 确保线程相关目录存在
         thread_data = get_thread_data(runtime)
         if is_local_sandbox(runtime):
-            validate_local_bash_command_paths(command, thread_data)
+            validate_local_bash_command_paths(command, thread_data) #验证本地bash命令中的路径安全性
             command = replace_virtual_paths_in_command(command, thread_data)
             output = sandbox.execute_command(command)
             return mask_local_paths_in_output(output, thread_data)

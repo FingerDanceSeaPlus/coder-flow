@@ -1,12 +1,12 @@
 import os
 import shutil
 import subprocess
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 
 from src.sandbox.local.list_dir import list_dir
 from src.sandbox.sandbox import Sandbox
 
-class LocalSandbox(Sandbox):
+class LocalSandboxWindows(Sandbox):
     def __init__(self, id: str, path_mappings: dict[str, str] | None = None):
         """
         Initialize local sandbox with optional path mappings.
@@ -21,33 +21,52 @@ class LocalSandbox(Sandbox):
 
     def _resolve_path(self, path: str) -> str:
         """
-        Resolve container path to actual local path using mappings.
-
-        Args:
-            path: Path that might be a container path
-
-        Returns:
-            Resolved local path
+        Resolve container path to actual local path (Windows-safe).
         """
-        path_str = str(path)
 
-        # Try each mapping (longest prefix first for more specific matches)
-        for container_path, local_path in sorted(self.path_mappings.items(), key=lambda x: len(x[0]), reverse=True):
-            if path_str.startswith(container_path):
-                # Replace the container path prefix with local path
-                relative = path_str[len(container_path) :].lstrip("/")
-                resolved = str(Path(local_path) / relative) if relative else local_path
-                return resolved
+        if not path:
+            return path
 
-        # No mapping found, return original path
-        return path_str
+        # ---- 1. 统一输入路径为 POSIX 风格 ----
+        path_norm = str(PurePosixPath(str(path)))
 
+        # ---- 2. 排序（最长前缀优先）----
+        mappings = sorted(
+            self.path_mappings.items(),
+            key=lambda x: len(x[0]),
+            reverse=True
+        )
+
+        for container_path, local_path in mappings:
+            # ---- 3. 统一 container_path ----
+            container_norm = str(PurePosixPath(container_path))
+
+            # ---- 4. Windows：大小写不敏感匹配 ----
+            if os.name == "nt":
+                match = path_norm.lower().startswith(container_norm.lower())
+            else:
+                match = path_norm.startswith(container_norm)
+
+            if match:
+                # ---- 5. 计算相对路径 ----
+                relative = path_norm[len(container_norm):].lstrip("/")
+
+                # ---- 6. 使用 Path 拼接（自动处理 \ 和 /）----
+                if relative:
+                    resolved = Path(local_path) / Path(relative)
+                else:
+                    resolved = Path(local_path)
+
+                # ---- 7. 返回标准化字符串 ----
+                return str(resolved)
+
+        return path
 
 
 
     def _reverse_resolve_path(self, path: str) -> str:
         """
-        Reverse resolve local path back to container path using mappings.
+        Reverse resolve local path back to container path using mappings.将本地路径解析为容器路径
 
         Args:
             path: Local path that might need to be mapped to container path
@@ -107,31 +126,46 @@ class LocalSandbox(Sandbox):
 
     def _resolve_paths_in_command(self, command: str) -> str:
         """
-        Resolve container paths to local paths in a command string.
-
-        Args:
-            command: Command string that may contain container paths
-
-        Returns:
-            Command with container paths resolved to local paths
+        Resolve container paths in command string (Windows-compatible).
         """
-        import re
 
-        # Sort mappings by length (longest first) for correct prefix matching
-        sorted_mappings = sorted(self.path_mappings.items(), key=lambda x: len(x[0]), reverse=True)
-
-        # Build regex pattern to match all container paths
-        # Match container path followed by optional path components
-        if not sorted_mappings:
+        if not self.path_mappings:
             return command
 
-        # Create pattern that matches any of the container paths
-        patterns = [re.escape(container_path) + r"(?:/[^\s\"';&|<>()]*)??" for container_path, _ in sorted_mappings]
-        pattern = re.compile("|".join(f"({p})" for p in patterns))
+        # ---- 1. 排序（最长匹配优先）----
+        sorted_mappings = sorted(
+            self.path_mappings.items(),
+            key=lambda x: len(x[0]),
+            reverse=True
+        )
 
+        # ---- 2. 构造 regex（支持 / 和 \）----
+        patterns = []
+        for container_path, _ in sorted_mappings:
+            # 统一为 POSIX 风格
+            container_norm = str(PurePosixPath(container_path))
+
+            # 把 "/" 替换为 "(/|\\)" → 同时匹配两种分隔符
+            flexible = re.escape(container_norm).replace(r"/", r"[\\/]")
+            
+            # 匹配路径（后面可以跟路径组件）
+            p = rf"{flexible}(?:[\\/][^\s\"';&|<>()]*)?"
+            patterns.append(p)
+
+        # ---- 3. 合并 pattern ----
+        pattern = re.compile(
+            "|".join(f"({p})" for p in patterns),
+            re.IGNORECASE if os.name == "nt" else 0
+        )
+
+        # ---- 4. 替换函数 ----
         def replace_match(match: re.Match) -> str:
             matched_path = match.group(0)
-            return self._resolve_path(matched_path)
+
+            # 统一为 POSIX 再处理
+            normalized = str(PurePosixPath(matched_path.replace("\\", "/")))
+
+            return self._resolve_path(normalized)
 
         return pattern.sub(replace_match, command)
 
@@ -144,7 +178,16 @@ class LocalSandbox(Sandbox):
         Raises a RuntimeError if no suitable shell is found.
         """
         import os
-
+    
+        # 优先查找 Git Bash
+        git_bash_paths = [
+            r"C:\Program Files\Git\bin\bash.exe",
+        ]
+        
+        for path in git_bash_paths:
+            if os.path.exists(path):
+                # 返回 Windows 风格的路径
+                return path
         for shell in ("/bin/zsh", "/bin/bash", "/bin/sh"):
             if os.path.isfile(shell) and os.access(shell, os.X_OK):
                 return shell
@@ -157,10 +200,10 @@ class LocalSandbox(Sandbox):
             # Resolve container paths in command before execution
             resolved_command = self._resolve_paths_in_command(command)
 
+            shell_path = self._get_shell()
+
             result = subprocess.run(
-                resolved_command,
-                executable="D:/Git/bin/bash.exe",
-                shell=True,
+                [shell_path, "-c", resolved_command],
                 capture_output=True,
                 text=True,
                 timeout=600,

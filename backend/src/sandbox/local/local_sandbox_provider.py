@@ -22,6 +22,8 @@ class LocalSandboxProvider(SandboxProvider):
         mappings = {}
 
         # Map skills container path to local skills directory
+        """
+        TODO: 处理技能目录映射
         try:
             from src.config import get_app_config
 
@@ -34,7 +36,7 @@ class LocalSandboxProvider(SandboxProvider):
                 mappings[container_path] = str(skills_path)
         except Exception as e:
             # Log but don't fail if config loading fails
-            print(f"Warning: Could not setup skills path mapping: {e}")
+            print(f"Warning: Could not setup skills path mapping: {e}")"""
 
         return mappings
 

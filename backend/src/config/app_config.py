@@ -7,6 +7,7 @@ from pathlib import Path
 import yaml
 from pydantic import BaseModel, Field, ConfigDict
 from src.config.sandbox_config import SandboxConfig
+from src.config.skills_config import SkillsConfig
 
 class AppConfig(BaseModel):
     """Config for the DeerFlow application"""
@@ -16,7 +17,7 @@ class AppConfig(BaseModel):
     tools: list[ToolConfig] = Field(default_factory=list, description="Available tools")
     tool_groups: list[ToolGroupConfig] = Field(default_factory=list, description="Available tool groups")
     # TODO: 不太懂技能，暂时跳过
-    #skills: SkillsConfig = Field(default_factory=SkillsConfig, description="Skills configuration")
+    skills: SkillsConfig = Field(default_factory=SkillsConfig, description="Skills configuration")
     #extensions: ExtensionsConfig = Field(default_factory=ExtensionsConfig, description="Extensions configuration (MCP servers and skills state)")
     model_config = ConfigDict(extra="allow", frozen=False)
     

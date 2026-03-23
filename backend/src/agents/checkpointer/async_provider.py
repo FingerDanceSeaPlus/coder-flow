@@ -97,16 +97,15 @@ async def make_checkpointer() -> AsyncIterator[Checkpointer]:
         async with make_checkpointer() as checkpointer:
             app.state.checkpointer = checkpointer
 
-    Yields an ``InMemorySaver`` when no checkpointer is configured in *config.yaml*.
-    """
+    Yields an ``InMemorySaver`` when no checkpointer is configured in *config.yaml*."""
 
     config = get_app_config()
 
-    if config.checkpointer is None:
+    if getattr(config, 'checkpointer', None) is None:
         from langgraph.checkpoint.memory import InMemorySaver
 
         yield InMemorySaver()
         return
 
-    async with _async_checkpointer(config.checkpointer) as saver:
+    async with _async_checkpointer(getattr(config, 'checkpointer', None)) as saver:
         yield saver

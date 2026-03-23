@@ -39,3 +39,5 @@ backend/src/tools/builtiins/__pycache__/task_tool.cpython-312.pyc
 backend/src/sandbox/__pycache__
 backend/src/subagents/builtins/__pycache__/bash_agent.cpython-312.pyc
 backend/src/subagents/builtins/__pycache__/__init__.cpython-312.pyc
+backend/src/subagents/__pycache__
+backend/src/subagents/__pycache__/config.cpython-312.pyc

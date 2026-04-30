@@ -3,6 +3,20 @@ from pathlib import Path
 
 from .parser import parse_skill_file
 from .types import Skill
+
+def get_skills_root_path() -> Path:
+    """
+    Get the root path of the skills directory.
+
+    Returns:
+        Path to the skills directory (deer-flow/skills)
+    """
+    # backend directory is current file's parent's parent's parent
+    backend_dir = Path(__file__).resolve().parent.parent.parent
+    # skills directory is sibling to backend directory
+    skills_dir = backend_dir.parent / "skills"
+    return skills_dir
+
 def load_skills(skills_path, use_config, enabled_only):
     """
     Load all skills from the skills directory.
@@ -27,3 +41,64 @@ def load_skills(skills_path, use_config, enabled_only):
     # 5. 从配置读取启用状态
     # 6. 可选：仅返回启用的技能
     # 7. 按名称排序返回
+
+    if skills_path is None:
+        if use_config:
+            try:
+                from src.config import get_app_config
+
+                config = get_app_config()
+                skills_path = config.skills.get_skills_path()
+            except Exception:
+                # 如果失败，回退到默认设置
+                skills_path = get_skills_root_path()
+        else:
+            skills_path = get_skills_root_path()
+
+    if not skills_path.exists():
+        return []
+
+    skills = []
+
+    # Scan public and custom directories
+    for category in ["public", "custom"]:
+        category_path = skills_path / category
+        if not category_path.exists() or not category_path.is_dir():
+            continue
+
+        for current_root, dir_names, file_names in os.walk(category_path):
+            # Keep traversal deterministic and skip hidden directories.
+            dir_names[:] = sorted(name for name in dir_names if not name.startswith("."))
+            if "SKILL.md" not in file_names:
+                continue
+
+            skill_file = Path(current_root) / "SKILL.md"
+            relative_path = skill_file.parent.relative_to(category_path)
+
+            skill = parse_skill_file(skill_file, category=category, relative_path=relative_path)
+            if skill:
+                skills.append(skill)
+
+    # Load skills state configuration and update enabled status
+    # NOTE: We use ExtensionsConfig.from_file() instead of get_extensions_config()
+    # to always read the latest configuration from disk. This ensures that changes
+    # made through the Gateway API (which runs in a separate process) are immediately
+    # reflected in the LangGraph Server when loading skills.
+    try:
+        from src.config.extensions_config import ExtensionsConfig
+
+        extensions_config = ExtensionsConfig.from_file()
+        for skill in skills:
+            skill.enabled = extensions_config.is_skill_enabled(skill.name, skill.category)
+    except Exception as e:
+        # If config loading fails, default to all enabled
+        print(f"Warning: Failed to load extensions config: {e}")
+
+    # Filter by enabled status if requested
+    if enabled_only:
+        skills = [skill for skill in skills if skill.enabled]
+
+    # Sort by name for consistent ordering
+    skills.sort(key=lambda s: s.name)
+
+    return skills

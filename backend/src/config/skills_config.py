@@ -31,7 +31,7 @@ class SkillsConfig(BaseModel):
             return path.resolve()
         else:
             # Default: ../skills relative to backend directory
-            from deerflow.skills.loader import get_skills_root_path
+            from src.skills.loader import get_skills_root_path
 
             return get_skills_root_path()
 

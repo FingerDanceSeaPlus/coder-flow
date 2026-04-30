@@ -2,6 +2,8 @@ from langchain_core.runnables import RunnableConfig
 from langchain.agents.middleware import AgentMiddleware, SummarizationMiddleware, TodoListMiddleware
 from src.agents.middlewares.clarification_middleware import ClarificationMiddleware
 from src.agents.middlewares.subagent_limit_middleware import SubagentLimitMiddleware
+from src.agents.middlewares.title_middleware import TitleMiddleware
+from src.agents.middlewares.memory_middleware import MemoryMiddleware
 
 class MiddlewareManager:
     """
@@ -11,7 +13,7 @@ class MiddlewareManager:
         self.config = config
         self.middlewares = []
 
-    def build_middlewares(self)->list[AgentMiddleware]:
+    def build_middlewares(self,agent_name: str)->list[AgentMiddleware]:
         """
         构建并返回中间件列表。
         """
@@ -22,6 +24,12 @@ class MiddlewareManager:
         )
         self.middlewares.append(self._create_summarization_middleware())
         self.middlewares.append(self._create_todo_list_middleware())
+
+            # Add TitleMiddleware
+        self.middlewares.append(TitleMiddleware())
+        
+        # Add MemoryMiddleware (after TitleMiddleware)
+        self.middlewares.append(MemoryMiddleware(agent_name=agent_name))
         
         subagent_enabled = self.config.get("configurable", {}).get("subagent_enabled", False)
         if subagent_enabled:

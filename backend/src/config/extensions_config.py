@@ -11,45 +11,45 @@ from pydantic import BaseModel, ConfigDict, Field
 class McpOAuthConfig(BaseModel):
     """OAuth configuration for an MCP server (HTTP/SSE transports)."""
 
-    enabled: bool = Field(default=True, description="Whether OAuth token injection is enabled")
-    token_url: str = Field(description="OAuth token endpoint URL")
-    grant_type: Literal["client_credentials", "refresh_token"] = Field(
+    enabled: bool = Field(default=True, description="Whether OAuth token injection is enabled")#控制是否启用OAuth令牌注入功能
+    token_url: str = Field(description="OAuth token endpoint URL")#OAuth令牌端点URL
+    grant_type: Literal["client_credentials", "refresh_token"] = Field(#OAuth授权类型，支持客户端凭证和刷新令牌两种模式
         default="client_credentials",
         description="OAuth grant type",
     )
-    client_id: str | None = Field(default=None, description="OAuth client ID")
-    client_secret: str | None = Field(default=None, description="OAuth client secret")
-    refresh_token: str | None = Field(default=None, description="OAuth refresh token (for refresh_token grant)")
-    scope: str | None = Field(default=None, description="OAuth scope")
-    audience: str | None = Field(default=None, description="OAuth audience (provider-specific)")
-    token_field: str = Field(default="access_token", description="Field name containing access token in token response")
-    token_type_field: str = Field(default="token_type", description="Field name containing token type in token response")
-    expires_in_field: str = Field(default="expires_in", description="Field name containing expiry (seconds) in token response")
-    default_token_type: str = Field(default="Bearer", description="Default token type when missing in token response")
-    refresh_skew_seconds: int = Field(default=60, description="Refresh token this many seconds before expiry")
-    extra_token_params: dict[str, str] = Field(default_factory=dict, description="Additional form params sent to token endpoint")
+    client_id: str | None = Field(default=None, description="OAuth client ID")#OAuth客户端ID
+    client_secret: str | None = Field(default=None, description="OAuth client secret")#OAuth客户端密钥
+    refresh_token: str | None = Field(default=None, description="OAuth refresh token (for refresh_token grant)")#OAuth刷新令牌（仅用于刷新令牌授权模式）
+    scope: str | None = Field(default=None, description="OAuth scope")#OAuth作用域
+    audience: str | None = Field(default=None, description="OAuth audience (provider-specific)")#OAuth受众（根据OAuth提供程序而异）
+    token_field: str = Field(default="access_token", description="Field name containing access token in token response")#令牌响应中包含访问令牌的字段名
+    token_type_field: str = Field(default="token_type", description="Field name containing token type in token response")#令牌响应中包含令牌类型的字段名
+    expires_in_field: str = Field(default="expires_in", description="Field name containing expiry (seconds) in token response")#令牌响应中包含过期时间（秒）的字段名
+    default_token_type: str = Field(default="Bearer", description="Default token type when missing in token response")#令牌响应中缺失令牌类型时的默认值
+    refresh_skew_seconds: int = Field(default=60, description="Refresh token this many seconds before expiry")  #刷新令牌提前多少秒刷新
+    extra_token_params: dict[str, str] = Field(default_factory=dict, description="Additional form params sent to token endpoint")#令牌端点额外的表单参数
     model_config = ConfigDict(extra="allow")
 
 
 class McpServerConfig(BaseModel):
     """Configuration for a single MCP server."""
 
-    enabled: bool = Field(default=True, description="Whether this MCP server is enabled")
-    type: str = Field(default="stdio", description="Transport type: 'stdio', 'sse', or 'http'")
-    command: str | None = Field(default=None, description="Command to execute to start the MCP server (for stdio type)")
-    args: list[str] = Field(default_factory=list, description="Arguments to pass to the command (for stdio type)")
-    env: dict[str, str] = Field(default_factory=dict, description="Environment variables for the MCP server")
-    url: str | None = Field(default=None, description="URL of the MCP server (for sse or http type)")
-    headers: dict[str, str] = Field(default_factory=dict, description="HTTP headers to send (for sse or http type)")
-    oauth: McpOAuthConfig | None = Field(default=None, description="OAuth configuration (for sse or http type)")
-    description: str = Field(default="", description="Human-readable description of what this MCP server provides")
+    enabled: bool = Field(default=True, description="Whether this MCP server is enabled")#控制是否启用此MCP服务器
+    type: str = Field(default="stdio", description="Transport type: 'stdio', 'sse', or 'http'")#MCP服务器传输类型，支持标准输入输出、Server-Sent Events（SSE）和HTTP/HTTPS
+    command: str | None = Field(default=None, description="Command to execute to start the MCP server (for stdio type)")#启动MCP服务器的命令（仅适用于stdio类型）
+    args: list[str] = Field(default_factory=list, description="Arguments to pass to the command (for stdio type)")#传递给命令的参数（仅适用于stdio类型）
+    env: dict[str, str] = Field(default_factory=dict, description="Environment variables for the MCP server")#MCP服务器的环境变量
+    url: str | None = Field(default=None, description="URL of the MCP server (for sse or http type)")#MCP服务器的URL（仅适用于SSE或HTTP/HTTPS类型）
+    headers: dict[str, str] = Field(default_factory=dict, description="HTTP headers to send (for sse or http type)")#发送到MCP服务器的HTTP头（仅适用于SSE或HTTP/HTTPS类型）
+    oauth: McpOAuthConfig | None = Field(default=None, description="OAuth configuration (for sse or http type)")#MCP服务器的OAuth配置（仅适用于SSE或HTTP/HTTPS类型）
+    description: str = Field(default="", description="Human-readable description of what this MCP server provides")#MCP服务器的人类可读描述，用于说明服务器提供的功能
     model_config = ConfigDict(extra="allow")
 
 
 class SkillStateConfig(BaseModel):
     """Configuration for a single skill's state."""
 
-    enabled: bool = Field(default=True, description="Whether this skill is enabled")
+    enabled: bool = Field(default=True, description="Whether this skill is enabled")#控制是否启用此技能
 
 
 class ExtensionsConfig(BaseModel):

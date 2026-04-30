@@ -16,7 +16,7 @@ def make_lead_agent(config: RunnableConfig):
     from src.models.factory import create_agent_model
     
     middleware_manager = MiddlewareManager(config)
-    middlewares = middleware_manager.build_middlewares()
+    middlewares = middleware_manager.build_middlewares("Lead Agent")
 
     return create_agent(
         model=create_agent_model(),

@@ -9,7 +9,7 @@ CheckpointerType = Literal["memory", "sqlite", "postgres"]
 
 class CheckpointerConfig(BaseModel):
     """Configuration for LangGraph state persistence checkpointer."""
-
+    #  checkpointer的类型
     type: CheckpointerType = Field(
         description="Checkpointer backend type. "
         "'memory' is in-process only (lost on restart). "
